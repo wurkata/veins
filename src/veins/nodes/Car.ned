@@ -24,13 +24,16 @@ package org.car2x.veins.nodes;
 
 import org.car2x.veins.base.modules.*;
 import org.car2x.veins.modules.nic.Nic80211p;
+import org.car2x.veins.modules.dataProcessing.DataStreamProcessor;
 
 module Car
 {
     parameters:
         string applType; //type of the application layer
+        string dspType = default("DataStreamProcessor"); // type of data stream processor
         string nicType = default("Nic80211p"); // type of network interface card
         string veinsmobilityType = default("org.car2x.veins.modules.mobility.traci.TraCIMobility"); //type of the mobility module
+        @display("bgb=216,336");
     gates:
         input veinsradioIn; // gate for sendDirect
     submodules:
@@ -39,22 +42,31 @@ module Car
                 @display("p=60,50");
         }
 
+        dsp: <dspType> like org.car2x.veins.modules.dataProcessing.IDataStreamProcessor {
+            parameters:
+                @display("p=121,155;i=block/classifier");
+        }
+
         nic: <nicType> like org.car2x.veins.modules.nic.INic80211p {
             parameters:
-                @display("p=60,166");
+                @display("p=60,260");
         }
 
         veinsmobility: <veinsmobilityType> like org.car2x.veins.base.modules.IMobility {
             parameters:
-                @display("p=130,172;i=block/cogwheel");
+                @display("p=160,260;i=block/cogwheel");
         }
-        
+
     connections:
-        nic.upperLayerOut --> appl.lowerLayerIn;
-        nic.upperLayerIn <-- appl.lowerLayerOut;
-        nic.upperControlOut --> appl.lowerControlIn;
-        nic.upperControlIn <-- appl.lowerControlOut;
+        nic.upperLayerOut --> dsp.lowerLayerIn;
+        nic.upperLayerIn <-- dsp.lowerLayerOut;
+        nic.upperControlOut --> dsp.lowerControlIn;
+        nic.upperControlIn <-- dsp.lowerControlOut;
+
+        dsp.upperLayerOut --> appl.lowerLayerIn;
+        dsp.upperLayerIn <-- appl.lowerLayerOut;
+        dsp.upperControlOut --> appl.lowerControlIn;
+        dsp.upperControlIn <-- appl.lowerControlOut;
 
         veinsradioIn --> nic.radioIn;
-
 }
