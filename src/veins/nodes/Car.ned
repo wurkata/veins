@@ -24,7 +24,7 @@ package org.car2x.veins.nodes;
 
 import org.car2x.veins.base.modules.*;
 import org.car2x.veins.modules.nic.Nic80211p;
-import org.car2x.veins.modules.dataProcessing.DataStreamProcessor;
+import org.car2x.veins.modules.facilities.DataStreamProcessor;
 
 module Car
 {
@@ -42,7 +42,7 @@ module Car
                 @display("p=60,50");
         }
 
-        dsp: <dspType> like org.car2x.veins.modules.dataProcessing.IDataStreamProcessor {
+        dsp: <dspType> like org.car2x.veins.modules.facilities.IDataStreamProcessor {
             parameters:
                 @display("p=121,155;i=block/classifier");
         }
