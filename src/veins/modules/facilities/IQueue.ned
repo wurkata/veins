@@ -22,12 +22,11 @@
 
 package org.car2x.veins.modules.facilities;
 
-simple Merge {
+moduleinterface IQueue {
     parameters:
-        @display("i=block/join");
+        @display("i=block/queue");
+        int windowSize @unit("int"); // size of the buffer/window (in number of packets)
     gates:
-        input inCAM; // add item to the queue
-        input inDEN; // add item to the queue
-        input inCoDM; // add item to the queue
+        input in; // add item to the queue
         output out; // remove item from the queue
 }

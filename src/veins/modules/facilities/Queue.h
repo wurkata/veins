@@ -7,7 +7,9 @@
 
 #include "veins/veins.h"
 
-class Queue {
+class Queue : public cSimpleModule {
+protected:
+    void initialize(int windowSize);
 };
 
 
