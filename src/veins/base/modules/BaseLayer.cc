@@ -127,8 +127,10 @@ void BaseLayer::sendUp(cMessage* msg)
 void BaseLayer::sendControlUp(cMessage* msg)
 {
     recordPacket(PassedMessage::OUTGOING, PassedMessage::UPPER_CONTROL, msg);
-    if (gate(upperControlOut)->isPathOK())
+    if (gate(upperControlOut)->isPathOK()) {
         send(msg, upperControlOut);
+        EV << "[DEBUG]: Control Message";
+    }
     else {
         EV << "BaseLayer: upperControlOut is not connected; dropping message" << std::endl;
         delete msg;

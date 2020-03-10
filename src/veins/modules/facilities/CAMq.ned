@@ -1,6 +1,6 @@
 package org.car2x.veins.modules.facilities;
 
-simple Queue like IQueue {
+simple CAMq {
     parameters:
         int windowSize = default(100);
     gates:

@@ -35,26 +35,17 @@ import org.car2x.veins.modules.application.ieee80211p.DemoBaseApplLayer;
 //
 
 // Interface for data stream processing module
-module DataStreamProcessor like IDataStreamProcessor {
+module DataStreamProcessor like IDataStreamProcessor
+{
     parameters:
         // string applType = default("TraCIDemo11p"); //type of the application layer
         // string nicType = default("Nic80211p"); // type of network interface card
-        
-        string camType = default("Queue");
-        string denType = default("Queue");
-        string codmType = default("Queue");
-        
+
         @display("bgb=360,280");
     gates:
         input lowerLayerIn; // from network layer
-        output lowerLayerOut; // to network layer
-        input lowerControlIn; // control from network layer
-        output lowerControlOut; // control to network layer
 
-        input upperLayerIn; // from application layer
         output upperLayerOut; // to application layer
-        input upperControlIn; // control from application layer
-        output upperControlOut; // control to application layer
 
     submodules:
         // nic: <nicType> like org.car2x.veins.modules.nic.INic80211p {
@@ -65,16 +56,12 @@ module DataStreamProcessor like IDataStreamProcessor {
             @display("p=61,120");
         }
 
-        camq: <camType> like IQueue {
-            @display("p=170,40");
+        camq: CAMq {
+            @display("p=170,60");
         }
 
-        denq: <denType> like IQueue {
-            @display("p=170,120");
-        }
-
-        codmq: <codmType> like IQueue {
-            @display("p=170,200");
+        denq: DENq {
+            @display("p=170,180");
         }
 
         merge: Merge {
@@ -85,21 +72,15 @@ module DataStreamProcessor like IDataStreamProcessor {
         //     @display("p=380,120");
         // }
     connections:
-        upperLayerIn --> lowerLayerOut;
-        upperControlIn --> lowerControlOut;
-        lowerControlIn --> upperControlOut;
-
         // nic.upperLayerOut --> filter.in;
         // nic.upperControlOut --> filter.in;
         lowerLayerIn --> filter.in;
 
         filter.outCAM --> camq.in;
         filter.outDEN --> denq.in;
-        filter.outCoDM --> codmq.in;
 
         camq.out --> merge.inCAM;
         denq.out --> merge.inDEN;
-        codmq.out --> merge.inCoDM;
 
         merge.out --> upperLayerOut;
 

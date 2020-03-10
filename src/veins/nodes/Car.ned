@@ -59,14 +59,12 @@ module Car
 
     connections:
         nic.upperLayerOut --> dsp.lowerLayerIn;
-        nic.upperLayerIn <-- dsp.lowerLayerOut;
-        nic.upperControlOut --> dsp.lowerControlIn;
-        nic.upperControlIn <-- dsp.lowerControlOut;
+
+        nic.upperLayerIn <-- appl.lowerLayerOut;
+        nic.upperControlOut --> appl.lowerControlIn;
+        nic.upperControlIn <-- appl.lowerControlOut;
 
         dsp.upperLayerOut --> appl.lowerLayerIn;
-        dsp.upperLayerIn <-- appl.lowerLayerOut;
-        dsp.upperControlOut --> appl.lowerControlIn;
-        dsp.upperControlIn <-- appl.lowerControlOut;
 
         veinsradioIn --> nic.radioIn;
 }

@@ -32,9 +32,16 @@
 #define VEINS_FILTER_H
 
 #include "veins/veins.h"
+#include "veins/modules/application/traci/TraCIDemo11pMessage_m.h"
 
 class Filter : public cSimpleModule {
+public:
+    Filter();
+    virtual ~Filter();
 protected:
-    void filterMsg(cMessage* msg);
+    int outCAM;
+
+    void initialize();
+    void handleMessage(cMessage* msg);
 };
 #endif //VEINS_FILTER_H

@@ -26,8 +26,7 @@ simple Filter {
     parameters:
         @display("i=block/filter");
     gates:
-        input in; // add item to the queue
-        output outCAM; // remove item from the queue
-        output outDEN; // remove item from the queue
-        output outCoDM; // remove item from the queue
+        input in; // add message to filter box
+        output outCAM; // send message to CAM queue
+        output outDEN; // send message to DEN queue
 }

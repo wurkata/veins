@@ -13,7 +13,7 @@ public:
     virtual ~DataStreamProcessor();
 
 protected:
-    void sendUp(cMessage* msg);
+    void handleMessage(cMessage* msg);
 };
 
 #endif //VEINS_DATASTREAMPROCESSOR_H

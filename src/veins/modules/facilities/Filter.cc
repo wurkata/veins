@@ -28,5 +28,23 @@
 
 Define_Module(Filter);
 
-void Filter::filterMsg(cMessage* msg) {
+Filter::Filter() {
+
+}
+
+void Filter::initialize() {
+    outCAM = findGate("outCAM");
+}
+
+void Filter::handleMessage(cMessage* msg) {
+    EV << "Component [Filter]: received message ";
+
+    if (dynamic_cast<veins::TraCIDemo11pMessage*>(msg)) {
+        EV_TRACE << "[Filter]: Message is CAM" << std::endl;
+        send(msg, outCAM);
+    }
+}
+
+Filter::~Filter() {
+
 }

@@ -4,7 +4,7 @@
 
 #include "DataStreamProcessor.h"
 
-void sendUp(cMessage* msg) {
-
+void handleMessage(cMessage* msg) {
+    EV << "DSP: received message ";
 }
 
