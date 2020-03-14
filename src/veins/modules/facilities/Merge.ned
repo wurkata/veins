@@ -25,8 +25,6 @@ package org.car2x.veins.modules.facilities;
 simple Merge {
     parameters:
         @display("i=block/join");
-
-        double pollInterval @unit("s") = default(3s);  // time until next poll from buffers
     gates:
         input inCAM; // receive item from CAM message queue
         input inDEN; // receive item from DEN message queue

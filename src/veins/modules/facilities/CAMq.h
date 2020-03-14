@@ -14,6 +14,7 @@ using namespace veins;
 
 class CAMq : public cSimpleModule {
 private:
+    simtime_t g_sendTime;
     int g_bufferSize {};
     std::vector<cMessage*> messageBuffer;
 
@@ -21,12 +22,11 @@ protected:
     int in;
     int out;
 
+    simtime_t sendInterval;
+
     void initialize(int bufferSize);
-
     void handleMessage(cMessage* msg);
-
-public:
-    void forwardMessages();
+    void handleSelfMsg(cMessage* msg);
 };
 
 

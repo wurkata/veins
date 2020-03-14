@@ -14,8 +14,6 @@
 
 class Merge : public cSimpleModule {
 private:
-    simtime_t pollInterval;
-
     int out;
     int inCAM;
     int inDEN;
@@ -26,7 +24,6 @@ protected:
     void initialize(int stage);
     void handleMessage(cMessage* msg);
     void handleSelfMsg(cMessage* msg);
-    void poll();
 };
 
 
