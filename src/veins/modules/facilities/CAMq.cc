@@ -28,17 +28,17 @@ void CAMq::handleMessage(cMessage* msg) {
         g_sendTime += sendInterval;
         scheduleAt(g_sendTime, msg);
     } else {
-        messageBuffer.push_back(msg);
+        messageBuffer.push_front(msg);
     }
 }
 
 void CAMq::handleSelfMsg(cMessage* msg) {
     EV << "[CAMq]: Forwarding " << messageBuffer.size() << " messages" << std::endl;
-    for (cMessage* msg : messageBuffer) {
-        EV << "[CAMq]: Forwarding message" << std::endl;
-        if (msg != nullptr) {
-            EV << "[CAMq]: Sending a " << msg->getOwner()->getName() << "'s message" << std::endl;
-            send(msg, out);
-        }
+    while (!messageBuffer.empty()) {
+        cMessage* m = messageBuffer.back();
+        EV << "[CAMq]: Sending a " << m->getOwner()->getName() << "'s message" << std::endl;
+        send(m, out);
+
+        messageBuffer.pop_back();
     }
 }

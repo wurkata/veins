@@ -16,7 +16,7 @@ class CAMq : public cSimpleModule {
 private:
     simtime_t g_sendTime;
     int g_bufferSize {};
-    std::vector<cMessage*> messageBuffer;
+    std::deque<cMessage*> messageBuffer;
 
 protected:
     int in;
