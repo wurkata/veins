@@ -20,8 +20,6 @@ void CAMq::initialize(int bufferSize) {
 }
 
 void CAMq::handleMessage(cMessage* msg) {
-    EV << "[CAMq]: Received a message" << std::endl;
-
     if (msg->isSelfMessage()) {
         CAMq::handleSelfMsg(msg);
 

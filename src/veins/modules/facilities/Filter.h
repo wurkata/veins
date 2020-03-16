@@ -33,6 +33,8 @@
 
 #include "veins/veins.h"
 #include "veins/modules/application/traci/TraCIDemo11pMessage_m.h"
+#include "veins/modules/messages/DemoServiceAdvertisement_m.h"
+#include "veins/modules/messages/DemoSafetyMessage_m.h"
 
 class Filter : public cSimpleModule {
 public:
@@ -40,6 +42,7 @@ public:
     virtual ~Filter();
 protected:
     int outCAM;
+    int outDEN;
 
     void initialize();
     void handleMessage(cMessage* msg);

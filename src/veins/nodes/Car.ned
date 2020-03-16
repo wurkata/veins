@@ -58,13 +58,14 @@ module Car
         }
 
     connections:
+        // Use Data Stream Processor by rerouting the packets through it
         nic.upperLayerOut --> dsp.lowerLayerIn;
+        dsp.upperLayerOut --> appl.lowerLayerIn;
+        // nic.upperLayerOut --> appl.lowerLayerIn;
 
         nic.upperLayerIn <-- appl.lowerLayerOut;
         nic.upperControlOut --> appl.lowerControlIn;
         nic.upperControlIn <-- appl.lowerControlOut;
-
-        dsp.upperLayerOut --> appl.lowerLayerIn;
 
         veinsradioIn --> nic.radioIn;
 }

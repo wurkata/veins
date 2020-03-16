@@ -14,12 +14,19 @@ using namespace veins;
 
 class DENq : public cSimpleModule {
 private:
+    simtime_t g_sendTime;
     int g_bufferSize {};
+    std::deque<cMessage*> messageBuffer;
 
 protected:
-    std::queue<DemoSafetyMessage*> messageBuffer;
+    int in;
+    int out;
+
+    simtime_t sendInterval;
 
     void initialize(int bufferSize);
+    void handleMessage(cMessage* msg);
+    void handleSelfMsg(cMessage* msg);
 };
 
 #endif //VEINS_DENQ_H

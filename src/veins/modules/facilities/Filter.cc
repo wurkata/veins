@@ -34,14 +34,18 @@ Filter::Filter() {
 
 void Filter::initialize() {
     outCAM = findGate("outCAM");
+    outDEN = findGate("outDEN");
 }
 
 void Filter::handleMessage(cMessage* msg) {
-    EV << "Component [Filter]: received message ";
-
     if (dynamic_cast<veins::TraCIDemo11pMessage*>(msg)) {
-        EV_TRACE << "[Filter]: Message is CAM" << std::endl;
+        EV_TRACE << "Filter: Received a DEN warning message" << std::endl;
+        send(msg, outDEN);
+    } else if (dynamic_cast<veins::DemoSafetyMessage*>(msg) || dynamic_cast<veins::DemoServiceAdvertisment*>(msg)) {
+        EV_TRACE << "Filter: Received a periodic CAM message" << std::endl;
         send(msg, outCAM);
+    } else {
+        EV_TRACE << "Filter [Warning]: Received unknown message type" << std::endl;
     }
 }
 
