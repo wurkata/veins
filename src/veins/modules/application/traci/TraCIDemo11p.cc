@@ -38,8 +38,14 @@ void TraCIDemo11p::initialize(int stage)
     }
 }
 
+void TraCIDemo11p::onBSM(DemoSafetyMessage* bsm) {
+
+}
+
 void TraCIDemo11p::onWSA(DemoServiceAdvertisment* wsa)
 {
+    EV << "[TraCIDemo11p]: Received a WSA" << std::endl;
+
     if (currentSubscribedServiceId == -1) {
         mac->changeServiceChannel(static_cast<Channel>(wsa->getTargetChannel()));
         currentSubscribedServiceId = wsa->getPsid();
@@ -56,6 +62,11 @@ void TraCIDemo11p::onWSM(BaseFrame1609_4* frame)
 
     findHost()->getDisplayString().setTagArg("i", 1, "green");
 
+    EV << "DemoData ";
+    for (int i = 0; i < strlen(wsm->getDemoData()); i++) {
+        EV << wsm->getDemoData()[i];
+    }
+    EV << std::endl;
     if (mobility->getRoadId()[0] != ':') traciVehicle->changeRoute(wsm->getDemoData(), 9999);
     if (!sentMessage) {
         sentMessage = true;

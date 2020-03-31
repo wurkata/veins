@@ -17,6 +17,8 @@ void CAMq::initialize(int bufferSize) {
 
     in = findGate("in");
     out = findGate("out");
+
+    srand(42);
 }
 
 void CAMq::handleMessage(cMessage* msg) {

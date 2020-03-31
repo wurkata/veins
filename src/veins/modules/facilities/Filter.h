@@ -38,6 +38,10 @@
 
 class Filter : public cSimpleModule {
 public:
+    class VEINS_API Statistics {
+            public:
+                int receivedMessages;
+    };
     Filter();
     virtual ~Filter();
 protected:

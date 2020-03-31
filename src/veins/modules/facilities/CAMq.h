@@ -6,6 +6,7 @@
 #define VEINS_CAMQ_H
 
 #include <queue>
+#include <cstdlib>
 
 #include "veins/veins.h"
 #include "veins/modules/application/traci/TraCIDemo11pMessage_m.h"

@@ -163,6 +163,8 @@ void DemoBaseApplLayer::populateWSM(BaseFrame1609_4* wsm, LAddress::L2Type rcvId
         bsm->setChannelNumber(static_cast<int>(Channel::cch));
         bsm->addBitLength(beaconLengthBits);
         wsm->setUserPriority(beaconUserPriority);
+        if (mobility != nullptr)
+            bsm->setDemoData(mobility->getRoadId().c_str());
     }
     else if (DemoServiceAdvertisment* wsa = dynamic_cast<DemoServiceAdvertisment*>(wsm)) {
         wsa->setChannelNumber(static_cast<int>(Channel::cch));
@@ -203,13 +205,14 @@ void DemoBaseApplLayer::handleParkingUpdate(cObject* obj)
     isParked = mobility->getParkingState();
 }
 
+// TODO: Receiving WSA/WSM/BSM
 void DemoBaseApplLayer::handleLowerMsg(cMessage* msg)
 {
-
     BaseFrame1609_4* wsm = dynamic_cast<BaseFrame1609_4*>(msg);
     ASSERT(wsm);
 
     if (DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(wsm)) {
+        EV << "Received a Beacon message" << std::endl;
         receivedBSMs++;
         onBSM(bsm);
     }
