@@ -2,6 +2,9 @@
 .idea/
 .cproject
 
+examples/veins/stats
+examples/veins/sumoStats
+
 src/Makefile
 src/*.so
 src/*.dll
