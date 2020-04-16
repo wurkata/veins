@@ -42,10 +42,10 @@ module Car
                 @display("p=60,50");
         }
 
-        // dsp: <dspType> like org.car2x.veins.modules.facilities.IDataStreamProcessor {
-        //     parameters:
-        //         @display("p=121,155;i=block/classifier");
-        // }
+        dsp: <dspType> like org.car2x.veins.modules.facilities.IDataStreamProcessor {
+            parameters:
+                @display("p=121,155;i=block/classifier");
+        }
 
         nic: <nicType> like org.car2x.veins.modules.nic.INic80211p {
             parameters:
@@ -59,9 +59,9 @@ module Car
 
     connections:
         // Use Data Stream Processor by rerouting the packets through it
-        // nic.upperLayerOut --> dsp.lowerLayerIn;
-        // dsp.upperLayerOut --> appl.lowerLayerIn;
-        nic.upperLayerOut --> appl.lowerLayerIn;
+        nic.upperLayerOut --> dsp.lowerLayerIn;
+        dsp.upperLayerOut --> appl.lowerLayerIn;
+        // nic.upperLayerOut --> appl.lowerLayerIn;
 
         nic.upperLayerIn <-- appl.lowerLayerOut;
         nic.upperControlOut --> appl.lowerControlIn;

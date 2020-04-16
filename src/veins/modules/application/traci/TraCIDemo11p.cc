@@ -39,7 +39,8 @@ void TraCIDemo11p::initialize(int stage)
 }
 
 void TraCIDemo11p::onBSM(DemoSafetyMessage* bsm) {
-
+    EV << "Road id is = " << mobility->getRoadId()[0] << std::endl;
+    if (mobility->getRoadId()[0] != ':' && mobility->getRoadId().length() > 1 && strlen(bsm->getDemoData()) > 1) traciVehicle->changeRoute(bsm->getDemoData(), 9999);
 }
 
 void TraCIDemo11p::onWSA(DemoServiceAdvertisment* wsa)
@@ -62,11 +63,6 @@ void TraCIDemo11p::onWSM(BaseFrame1609_4* frame)
 
     findHost()->getDisplayString().setTagArg("i", 1, "green");
 
-    EV << "DemoData ";
-    for (int i = 0; i < strlen(wsm->getDemoData()); i++) {
-        EV << wsm->getDemoData()[i];
-    }
-    EV << std::endl;
     if (mobility->getRoadId()[0] != ':') traciVehicle->changeRoute(wsm->getDemoData(), 9999);
     if (!sentMessage) {
         sentMessage = true;

@@ -15,23 +15,23 @@ void DENq::initialize(int bufferSize) {
 
     g_sendTime = simTime() + sendInterval;
     cMessage* sendTrigger = new cMessage("send");
-    scheduleAt(g_sendTime, sendTrigger);
+    // scheduleAt(g_sendTime, sendTrigger);
 
     in = findGate("in");
     out = findGate("out");
 }
 
 void DENq::handleMessage(cMessage* msg) {
-    if (msg->isSelfMessage()) {
-        DENq::handleSelfMsg(msg);
+    // if (msg->isSelfMessage()) {
+    //     DENq::handleSelfMsg(msg);
 
-        g_sendTime += sendInterval;
-        scheduleAt(g_sendTime, msg);
-    } else {
+    //     g_sendTime += sendInterval;
+    //     scheduleAt(g_sendTime, msg);
+    // } else {
         messageBuffer.push_front(msg);
-        // messageBuffer.pop_back();
-        // send(msg, out);
-    }
+        messageBuffer.pop_back();
+        send(msg, out);
+    // }
 }
 
 void DENq::handleSelfMsg(cMessage* msg) {

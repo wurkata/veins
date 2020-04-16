@@ -214,6 +214,7 @@ void DemoBaseApplLayer::handleLowerMsg(cMessage* msg)
     if (DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(wsm)) {
         EV << "Received a Beacon message" << std::endl;
         receivedBSMs++;
+        // Recalculate optimal route
         onBSM(bsm);
     }
     else if (DemoServiceAdvertisment* wsa = dynamic_cast<DemoServiceAdvertisment*>(wsm)) {

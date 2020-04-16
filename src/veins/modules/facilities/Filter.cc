@@ -49,6 +49,4 @@ void Filter::handleMessage(cMessage* msg) {
     }
 }
 
-Filter::~Filter() {
-
-}
+Filter::~Filter() {}
