@@ -33,8 +33,11 @@ class noncobject Coord;
 class LAddress::L2Type extends void;
 
 packet DemoSafetyMessage extends BaseFrame1609_4 {
+    int senderId;
+
     Coord senderPos;
     Coord senderSpeed;
 
     string demoData;
+    int vCount;
 }

@@ -33,35 +33,35 @@ module Car
         string dspType = default("DataStreamProcessor"); // type of data stream processor
         string nicType = default("Nic80211p"); // type of network interface card
         string veinsmobilityType = default("org.car2x.veins.modules.mobility.traci.TraCIMobility"); //type of the mobility module
-        @display("bgb=216,336");
+        @display("bgb=211.2,338.06665");
     gates:
         input veinsradioIn; // gate for sendDirect
     submodules:
         appl: <applType> like org.car2x.veins.base.modules.IBaseApplLayer {
             parameters:
-                @display("p=60,50");
+                @display("p=55.733334,32.266666");
         }
 
         dsp: <dspType> like org.car2x.veins.modules.facilities.IDataStreamProcessor {
             parameters:
-                @display("p=121,155;i=block/classifier");
+                @display("p=116.6,126.86667;i=block/classifier");
         }
 
         nic: <nicType> like org.car2x.veins.modules.nic.INic80211p {
             parameters:
-                @display("p=60,260");
+                @display("p=55.733334,222.2");
         }
 
         veinsmobility: <veinsmobilityType> like org.car2x.veins.base.modules.IMobility {
             parameters:
-                @display("p=160,260;i=block/cogwheel");
+                @display("p=145.2,222.2;i=block/cogwheel");
         }
 
     connections:
         // Use Data Stream Processor by rerouting the packets through it
-        nic.upperLayerOut --> dsp.lowerLayerIn;
-        dsp.upperLayerOut --> appl.lowerLayerIn;
-        // nic.upperLayerOut --> appl.lowerLayerIn;
+        nic.upperLayerOut --> dsp.lowerLayerIn; // uncomment to use DSP
+        dsp.upperLayerOut --> appl.lowerLayerIn; // uncomment to use DSP
+        // nic.upperLayerOut --> appl.lowerLayerIn; // comment to use DSP
 
         nic.upperLayerIn <-- appl.lowerLayerOut;
         nic.upperControlOut --> appl.lowerControlIn;

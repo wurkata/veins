@@ -157,6 +157,7 @@ void DemoBaseApplLayer::populateWSM(BaseFrame1609_4* wsm, LAddress::L2Type rcvId
     wsm->setBitLength(headerLength);
 
     if (DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(wsm)) {
+        bsm->setSenderId(FindModule<BaseMobility*>::findHost(getParentModule())->getId());
         bsm->setSenderPos(curPosition);
         bsm->setSenderSpeed(curSpeed);
         bsm->setPsid(-1);
@@ -215,7 +216,8 @@ void DemoBaseApplLayer::handleLowerMsg(cMessage* msg)
         EV << "Received a Beacon message" << std::endl;
         receivedBSMs++;
         // Recalculate optimal route
-        onBSM(bsm);
+        if (bsm->getVCount() == -1 || bsm->getVCount() > 8)
+            onBSM(bsm);
     }
     else if (DemoServiceAdvertisment* wsa = dynamic_cast<DemoServiceAdvertisment*>(wsm)) {
         receivedWSAs++;

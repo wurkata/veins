@@ -41,7 +41,7 @@ module DataStreamProcessor like IDataStreamProcessor
         // string applType = default("TraCIDemo11p"); //type of the application layer
         // string nicType = default("Nic80211p"); // type of network interface card
 
-        @display("bgb=360,280");
+        @display("bgb=477,306");
     gates:
         input lowerLayerIn; // from network layer
 
@@ -53,19 +53,19 @@ module DataStreamProcessor like IDataStreamProcessor
         // }
 
         filter: Filter {
-            @display("p=61,120");
+            @display("p=60,150");
         }
 
         camq: CAMq {
-            @display("p=170,60");
+            @display("p=231,90;i=block/queue");
         }
 
         denq: DENq {
-            @display("p=170,180");
+            @display("p=231,210;i=block/queue");
         }
 
         merge: Merge {
-            @display("p=284,120");
+            @display("p=414,150");
         }
 
         // app: <applType> like IBaseApplLayer {
