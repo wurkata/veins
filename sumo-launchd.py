@@ -201,7 +201,10 @@ def run_sumo(runpath, sumo_command, shlex, config_file_name, remote_port, seed, 
             import shlex
             cmd = shlex.split(sumo_command.replace('{}', '-c ' + config_file_name))
         else:
-            cmd = [sumo_command, "-c", config_file_name, "--emission-output", "/tmp/emission.xml"]
+            cmd = [sumo_command, "-c", config_file_name,
+                   "--emission-output", "/tmp/emission.xml",
+                   "--tripinfo-output", "/tmp/tripinfo.xml"
+                   ]
         logging.info("Starting SUMO (%s) on port %d, seed %d" % (" ".join(cmd), remote_port, seed))
         sumo = subprocess.Popen(cmd, cwd=runpath, stdin=None, stdout=sumoLogOut, stderr=sumoLogErr)
 
