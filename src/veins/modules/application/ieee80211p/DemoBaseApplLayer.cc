@@ -28,6 +28,14 @@ void DemoBaseApplLayer::initialize(int stage)
 {
     BaseApplLayer::initialize(stage);
 
+    srand(42);
+    std::make_heap(h_rid.begin(), h_rid.end());
+
+    processInterval = par("processInterval");
+    g_processTime = simTime() + processInterval;
+    cMessage* processTrigger = new cMessage("process", PROCESS_BSM_EVT);
+    scheduleAt(g_processTime, processTrigger);
+
     if (stage == 0) {
 
         // initialize pointers to other modules
@@ -215,9 +223,13 @@ void DemoBaseApplLayer::handleLowerMsg(cMessage* msg)
     if (DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(wsm)) {
         EV << "Received a Beacon message" << std::endl;
         receivedBSMs++;
-        // Recalculate optimal route
-        if (bsm->getVCount() == -1 || bsm->getVCount() > 8)
-            onBSM(bsm);
+
+        // Update LDM
+        int vid = bsm->getSenderId();
+        std::string rid = bsm->getDemoData();
+
+        messageBuffer.push_front(bsm);
+        DemoBaseApplLayer::m_updateVid2Rid(vid, rid);
     }
     else if (DemoServiceAdvertisment* wsa = dynamic_cast<DemoServiceAdvertisment*>(wsm)) {
         receivedWSAs++;
@@ -247,6 +259,31 @@ void DemoBaseApplLayer::handleSelfMsg(cMessage* msg)
         sendDown(wsa);
         scheduleAt(simTime() + wsaInterval, sendWSAEvt);
         break;
+    }
+    case PROCESS_BSM_EVT: {
+        EV << "[LDM] Processing " << messageBuffer.size() << " messages" << std::endl;
+        while (!messageBuffer.empty()) {
+            DemoSafetyMessage* bsm = messageBuffer.back();
+            std::string rid = bsm->getDemoData();
+
+            if (strcmp(rid.c_str(), h_rid.front()->roadId.c_str())) {
+                EV << "[LDM]: Processing " << bsm->getOwner()->getName() << "'s message" << std::endl;
+                bsm->setVCount(h_rid.front()->vCount);
+                // send(m, out);
+                //
+                // h_rid.clear();
+                // m_vid2rid.clear();
+                // m_rid2node.clear();
+                // messageBuffer.clear();
+                onBSM(bsm);
+                break;
+            }
+
+            messageBuffer.pop_back();
+        }
+
+        g_processTime += processInterval;
+        scheduleAt(g_processTime, msg);
     }
     default: {
         if (msg) EV_WARN << "APP: Error: Got Self Message of unknown kind! Name: " << msg->getName() << endl;
@@ -320,5 +357,44 @@ void DemoBaseApplLayer::checkAndTrackPacket(cMessage* msg)
     else if (dynamic_cast<BaseFrame1609_4*>(msg)) {
         EV_TRACE << "sending down a wsm" << std::endl;
         generatedWSMs++;
+    }
+}
+
+/* Local Dynamic Map (LDM) functionality by Yavor Edipov */
+DemoBaseApplLayer::Node* DemoBaseApplLayer::h_updateNode(std::string rid, int count) {
+    Node* np_curRid = new Node;
+    auto res = m_rid2node.find(rid.c_str());
+    if (res != m_rid2node.end()) {
+        np_curRid = res->second;
+        np_curRid->vCount += count;
+    } else {
+        if (count < 0) {
+            EV_WARN << "Node with rid " << rid << " will be created with a negative count" << std::endl;
+        }
+        np_curRid->roadId = rid;
+        np_curRid->vCount = 1;
+
+        h_rid.push_back(np_curRid);
+    }
+    std::push_heap(h_rid.begin(), h_rid.end());
+
+    return np_curRid;
+}
+
+void DemoBaseApplLayer::m_updateVid2Rid(int vid, std::string rid) {
+    auto const result = m_vid2rid.insert(std::make_pair(vid, rid));
+
+    if (not result.second && strcmp(result.first->second.c_str(), rid.c_str())) {
+        std::string old_rid = result.first->second;
+        Node* n_oldRid = DemoBaseApplLayer::h_updateNode(old_rid, -1);
+
+        result.first->second = rid;
+        Node* n_newRid = DemoBaseApplLayer::h_updateNode(rid, 1);
+        m_rid2node.insert(std::make_pair(rid.c_str(), n_newRid));
+    } else if (not result.second && !strcmp(result.first->second.c_str(), rid.c_str())) {
+        // do nothing
+    } else {
+        Node* n_newRid = DemoBaseApplLayer::h_updateNode(rid, 1);
+        m_rid2node.insert(std::make_pair(rid.c_str(), n_newRid));
     }
 }

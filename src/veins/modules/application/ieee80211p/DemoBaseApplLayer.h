@@ -23,6 +23,10 @@
 #pragma once
 
 #include <map>
+#include <queue>
+#include <cstdlib>
+#include <cmath>
+#include <random>
 
 #include "veins/base/modules/BaseApplLayer.h"
 #include "veins/modules/utility/Consts80211p.h"
@@ -66,7 +70,8 @@ public:
 
     enum DemoApplMessageKinds {
         SEND_BEACON_EVT,
-        SEND_WSA_EVT
+        SEND_WSA_EVT,
+        PROCESS_BSM_EVT
     };
 
 protected:
@@ -134,6 +139,25 @@ protected:
      */
     virtual void checkAndTrackPacket(cMessage* msg);
 
+    /* Local Dynamic Map (LDM) functions by Yavor Edipov */
+    struct Node {
+        std::string roadId;
+        int vCount;
+        bool operator<( const Node & n ) const {
+            return vCount > n.vCount;
+        }
+    };
+    Node* h_updateNode(std::string rid, int count);
+
+    void m_updateVid2Rid(int vid, std::string rid);
+
+    struct char_cmp {
+        bool operator () (const char *a,const char *b) const
+        {
+            return strcmp(a,b)<0;
+        }
+    };
+
 protected:
     /* pointers ill be set when used with TraCIMobility */
     TraCIMobility* mobility;
@@ -180,6 +204,15 @@ protected:
     /* messages for periodic events such as beacon and WSA transmissions */
     cMessage* sendBeaconEvt;
     cMessage* sendWSAEvt;
+
+    /* Local Dynamic Map (LDM) by Yavor Edipov */
+    simtime_t g_processTime;
+    simtime_t processInterval;
+
+    std::map<int, std::string> m_vid2rid;
+    std::map<const char*, Node*, char_cmp> m_rid2node;
+    std::vector<Node*> h_rid;
+    std::deque<DemoSafetyMessage*> messageBuffer;
 };
 
 } // namespace veins

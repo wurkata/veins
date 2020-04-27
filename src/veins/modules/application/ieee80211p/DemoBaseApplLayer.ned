@@ -50,6 +50,8 @@ simple DemoBaseApplLayer like IBaseApplLayer
 
         bool avoidBeaconSynchronization = default(true); //don't start beaconing directly after node was created but delay to avoid artifical synchronization
 
+        double processInterval @unit("s") = default(3s);  // time until next processing of CAMs
+
         bool sendWSA = default(false);
         int wsaLengthBits = default(250bit) @unit(bit);
         double wsaInterval =  default(1s) @unit(s);
