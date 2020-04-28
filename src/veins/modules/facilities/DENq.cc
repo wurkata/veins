@@ -28,8 +28,8 @@ void DENq::handleMessage(cMessage* msg) {
     //     g_sendTime += sendInterval;
     //     scheduleAt(g_sendTime, msg);
     // } else {
-        messageBuffer.push_front(msg);
-        messageBuffer.pop_back();
+        // messageBuffer.push_front(msg);
+        // messageBuffer.pop_back();
         send(msg, out);
     // }
 }
