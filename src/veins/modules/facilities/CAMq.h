@@ -20,12 +20,18 @@ using namespace veins;
 
 class CAMq : public cSimpleModule {
 private:
+    enum SelfMsgType {
+        SEND_EVT,
+        RECORD_MAX_SAMPLE_SIZE_EVT
+    };
+
     simtime_t g_sendTime;
     int g_bufferSize {};
 
     struct Node {
         std::string roadId;
         int vCount;
+        cMessage* msg;
         bool operator<( const Node & n ) const {
             return vCount > n.vCount;
         }
@@ -41,24 +47,27 @@ private:
     std::map<int, std::string> m_vid2rid;
     std::map<const char*, Node*, char_cmp> m_rid2node;
     std::vector<Node*> h_rid;
-    std::deque<cMessage*> messageBuffer;
+    std::array<cMessage*, 20> reservoir;
 
 protected:
     int in;
     int out;
 
-    int m = 0;
-    int ei = 0;
-    int RECEIVED_CAMs = 0;
+    int m;
+    int elementi;
+    int alpha;
+    int maxSampleSize;
+    int RECEIVED_CAMs;
 
     simtime_t sendInterval;
     int samplingTechnique;
     double samplingRate;
 
-    Node* h_updateNode(std::string rid, int count);
-    void m_updateVid2Rid(int vid, std::string rid);
-    void sampleBernoulli(cMessage* msg);
-    void sampleReservoir(cMessage* msg);
+    Node* h_updateNode(std::string rid, int count, cMessage* msg);
+    void m_updateVid2Rid(int vid, std::string rid, cMessage* msg);
+    void sampleBernoulli(cMessage* msg, int ei);
+    void sampleReservoir(cMessage* msg, int ei);
+    int searchDelta(int ei);
 
 
     void initialize(int bufferSize);

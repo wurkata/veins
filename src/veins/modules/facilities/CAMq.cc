@@ -22,9 +22,14 @@ void CAMq::initialize(int bufferSize) {
     sendInterval = par("sendInterval");
     samplingTechnique = par("samplingTechnique");
     samplingRate = par("samplingRate").doubleValue();
+    maxSampleSize = par("maxSampleSize");
+
+    RECEIVED_CAMs = 0;
+    elementi = 0;
+    m = 0;
 
     g_sendTime = simTime() + sendInterval;
-    cMessage* sendTrigger = new cMessage("send");
+    cMessage* sendTrigger = new cMessage("send", SEND_EVT);
     scheduleAt(g_sendTime, sendTrigger);
 
     in = findGate("in");
@@ -32,31 +37,31 @@ void CAMq::initialize(int bufferSize) {
 
     switch(samplingTechnique) {
         case BERNOULLI_SAMPLING:
-            sampleBernoulli(sendTrigger);
+            sampleBernoulli(sendTrigger, elementi);
             break;
         case RESERVOIR_SAMPLING:
-            sampleBernoulli(sendTrigger);
+            m = maxSampleSize;
+            alpha = 22 * maxSampleSize;
             break;
         default:
             break;
     }
+    cMessage* recordTrigger = new cMessage("record", RECORD_MAX_SAMPLE_SIZE_EVT);
+    scheduleAt(simTime() + 1, recordTrigger);
 }
 
 void CAMq::handleMessage(cMessage* msg) {
     if (msg->isSelfMessage()) {
         CAMq::handleSelfMsg(msg);
-
-        g_sendTime += sendInterval;
-        scheduleAt(g_sendTime, msg);
     } else {
-        ei++;
-
+        elementi++;
         switch(samplingTechnique) {
             case BERNOULLI_SAMPLING:
-                sampleBernoulli(msg);
+                sampleBernoulli(msg, elementi);
                 break;
             case RESERVOIR_SAMPLING:
-                sampleBernoulli(msg);
+                EV << this->getId() << " | elementi = " << elementi << std::endl;
+                sampleReservoir(msg, elementi);
                 break;
             default:
                 break;
@@ -64,20 +69,18 @@ void CAMq::handleMessage(cMessage* msg) {
     }
 }
 
-void CAMq::sampleBernoulli(cMessage* msg) {
+void CAMq::sampleBernoulli(cMessage* msg, int ei) {
     if (m == 0) {
         double U = dist(e2);
         int delta = floor(log2(U) / log10(1 - samplingRate));
         m = delta + 1;
     } else if (ei == m) {
         RECEIVED_CAMs++;
-        EV << this->getId() << " | RECEIVED CAMS = " << RECEIVED_CAMs << std::endl;
+
         DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
         int vid = bsm->getSenderId();
         std::string rid = bsm->getDemoData();
-
-        m_updateVid2Rid(vid, rid);
-        messageBuffer.push_front(msg);
+        m_updateVid2Rid(vid, rid, msg);
 
         double U = dist(e2);
         int delta = floor(log2(U) / log10(1 - samplingRate));
@@ -85,18 +88,95 @@ void CAMq::sampleBernoulli(cMessage* msg) {
     }
 }
 
-CAMq::Node* CAMq::h_updateNode(std::string rid, int count) {
+void CAMq::sampleReservoir(cMessage* msg, int ei) {
+    if (ei < maxSampleSize) {
+        reservoir[ei - 1] = msg;
+    }
+    if (ei >= maxSampleSize && ei == m) {
+        if (ei == maxSampleSize) {
+            RECEIVED_CAMs++;
+
+            DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
+            int vid = bsm->getSenderId();
+            std::string rid = bsm->getDemoData();
+            m_updateVid2Rid(vid, rid, msg);
+            reservoir[maxSampleSize - 1] = msg;
+        } else {
+            RECEIVED_CAMs++;
+
+            DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
+            int vid = bsm->getSenderId();
+            std::string rid = bsm->getDemoData();
+            m_updateVid2Rid(vid, rid, msg);
+
+            int U = dist(e2);
+            int I = floor(maxSampleSize*U);
+            reservoir[I] = msg;
+        }
+
+        int delta;
+        if (ei <= alpha) {
+            delta = searchDelta(ei);
+        } else {
+            double c = (double) (ei + 1) / (ei - maxSampleSize + 1);
+            double w = dist(e2);
+            long s;
+            while (true) {
+                double u = dist(e2);
+                double x = floor(ei * (pow(w, (-1/maxSampleSize))- 1.0));
+                s = (long) x;
+                double g = (maxSampleSize) / (ei + x) * pow(ei / (ei + x), maxSampleSize);
+                double h = ((double) maxSampleSize / (ei + 1))
+                           * pow((double) (ei - maxSampleSize + 1) / (ei + s - maxSampleSize + 1), maxSampleSize + 1);
+                if (u <= (c * g) / h) {
+                    break;
+                }
+                // slow path, need to check f
+                double f = 1;
+                for (int i = 0; i <= s; ++i) {
+                    f *= (double) (ei - maxSampleSize + i) / (ei + 1 + i);
+                }
+                f *= maxSampleSize;
+                f /= (ei - maxSampleSize);
+                if (u <= (c * g) / f) {
+                    break;
+                }
+                w = dist(e2);
+            }
+            delta = s + 1;
+        }
+
+        m = ei + delta;
+    }
+}
+
+int CAMq::searchDelta(int ei) {
+    long s = 0;
+    double u = dist(e2);
+    double quotient = (double)(ei + 1 - maxSampleSize)/(ei + 1);
+    int i = 1;
+    do {
+        quotient *= (double)(ei + 1 + i - maxSampleSize)/(ei + i + 1);
+        ++s;
+        ++i;
+    } while (quotient > u);
+    return s + 1;
+}
+
+CAMq::Node* CAMq::h_updateNode(std::string rid, int count, cMessage* msg) {
     Node* np_curRid = new Node;
     auto res = m_rid2node.find(rid.c_str());
     if (res != m_rid2node.end()) {
         np_curRid = res->second;
         np_curRid->vCount += count;
+        np_curRid->msg = msg;
     } else {
         if (count < 0) {
             EV_WARN << "Node with rid " << rid << " will be created with a negative count" << std::endl;
         }
         np_curRid->roadId = rid;
         np_curRid->vCount = 1;
+        np_curRid->msg = msg;
 
         h_rid.push_back(np_curRid);
     }
@@ -105,48 +185,54 @@ CAMq::Node* CAMq::h_updateNode(std::string rid, int count) {
     return np_curRid;
 }
 
-void CAMq::m_updateVid2Rid(int vid, std::string rid) {
+void CAMq::m_updateVid2Rid(int vid, std::string rid, cMessage* msg) {
     auto const result = m_vid2rid.insert(std::make_pair(vid, rid));
 
     if (not result.second && strcmp(result.first->second.c_str(), rid.c_str())) {
         std::string old_rid = result.first->second;
-        Node* n_oldRid = h_updateNode(old_rid, -1);
+        Node* n_oldRid = h_updateNode(old_rid, -1, msg);
 
         result.first->second = rid;
-        Node* n_newRid = h_updateNode(rid, 1);
+        Node* n_newRid = h_updateNode(rid, 1, msg);
         m_rid2node.insert(std::make_pair(rid.c_str(), n_newRid));
     } else if (not result.second && !strcmp(result.first->second.c_str(), rid.c_str())) {
         // do nothing
     } else {
-        Node* n_newRid = h_updateNode(rid, 1);
+        Node* n_newRid = h_updateNode(rid, 1, msg);
         m_rid2node.insert(std::make_pair(rid.c_str(), n_newRid));
     }
 }
 
 void CAMq::handleSelfMsg(cMessage* msg) {
-    EV << "[CAMq]: Forwarding " << messageBuffer.size() << " messages" << std::endl;
-    while (!messageBuffer.empty()) {
-        cMessage* m = messageBuffer.back();
-        DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(m);
-        std::string rid = bsm->getDemoData();
+    switch (msg->getKind()) {
+        case SEND_EVT: {
+            if (!h_rid.empty()) {
+                cMessage *m = h_rid.front()->msg;
+                DemoSafetyMessage *bsm = dynamic_cast<DemoSafetyMessage *>(m);
+                bsm->setVCount(h_rid.front()->vCount);
+                send(m, out);
 
-        if (strcmp(rid.c_str(), h_rid.front()->roadId.c_str())) {
-            EV << "[CAMq]: Sending a " << m->getOwner()->getName() << "'s message" << std::endl;
-            bsm->setVCount(h_rid.front()->vCount);
-            send(m, out);
+                h_rid.clear();
+                m_vid2rid.clear();
+                m_rid2node.clear();
+            }
 
-            h_rid.clear();
-            m_vid2rid.clear();
-            m_rid2node.clear();
-            messageBuffer.clear();
-
+            g_sendTime += sendInterval;
+            scheduleAt(g_sendTime, msg);
             break;
         }
+        case RECORD_MAX_SAMPLE_SIZE_EVT: {
+            maxSampleSize = h_rid.size() > maxSampleSize ? h_rid.size() : maxSampleSize;
 
-        messageBuffer.pop_back();
+            scheduleAt(simTime() + 1, msg);
+            break;
+        }
+        default:
+            break;
     }
 }
 
 void CAMq::finish() {
     recordScalar("receivedBSMs", RECEIVED_CAMs);
+    recordScalar("maxSampleSize", maxSampleSize);
 }
