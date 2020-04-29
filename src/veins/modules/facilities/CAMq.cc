@@ -93,17 +93,15 @@ void CAMq::sampleReservoir(cMessage* msg, int ei) {
         reservoir[ei - 1] = msg;
     }
     if (ei >= maxSampleSize && ei == m) {
-        if (ei == maxSampleSize) {
-            RECEIVED_CAMs++;
+        RECEIVED_CAMs++;
 
+        if (ei == maxSampleSize) {
             DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
             int vid = bsm->getSenderId();
             std::string rid = bsm->getDemoData();
             m_updateVid2Rid(vid, rid, msg);
             reservoir[maxSampleSize - 1] = msg;
         } else {
-            RECEIVED_CAMs++;
-
             DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
             int vid = bsm->getSenderId();
             std::string rid = bsm->getDemoData();
@@ -123,30 +121,30 @@ void CAMq::sampleReservoir(cMessage* msg, int ei) {
             long s;
             while (true) {
                 double u = dist(e2);
-                double x = floor(ei * (pow(w, (-1/maxSampleSize))- 1.0));
+                // TODO: Check the correctness of the algorithm
+                double x = ei * (pow(w, (-1 / (double) maxSampleSize))- 1.0);
                 s = (long) x;
                 double g = (maxSampleSize) / (ei + x) * pow(ei / (ei + x), maxSampleSize);
                 double h = ((double) maxSampleSize / (ei + 1))
                            * pow((double) (ei - maxSampleSize + 1) / (ei + s - maxSampleSize + 1), maxSampleSize + 1);
-                if (u <= (c * g) / h) {
+                if (u <= h / (c * g)) {
                     break;
                 }
-                // slow path, need to check f
                 double f = 1;
                 for (int i = 0; i <= s; ++i) {
                     f *= (double) (ei - maxSampleSize + i) / (ei + 1 + i);
                 }
                 f *= maxSampleSize;
                 f /= (ei - maxSampleSize);
-                if (u <= (c * g) / f) {
+                if (u <= f / (c * g)) {
                     break;
                 }
                 w = dist(e2);
             }
-            delta = s + 1;
+            delta = s;
         }
 
-        m = ei + delta;
+        m = ei + delta + 1;
     }
 }
 
