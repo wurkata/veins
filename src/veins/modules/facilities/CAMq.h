@@ -47,7 +47,7 @@ private:
     std::map<int, std::string> m_vid2rid;
     std::map<const char*, Node*, char_cmp> m_rid2node;
     std::vector<Node*> h_rid;
-    std::array<cMessage*, 20> reservoir;
+    std::array<cMessage*, 6> reservoir;
 
 protected:
     int in;

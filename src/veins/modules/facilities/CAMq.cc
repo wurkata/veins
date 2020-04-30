@@ -60,7 +60,6 @@ void CAMq::handleMessage(cMessage* msg) {
                 sampleBernoulli(msg, elementi);
                 break;
             case RESERVOIR_SAMPLING:
-                EV << this->getId() << " | elementi = " << elementi << std::endl;
                 sampleReservoir(msg, elementi);
                 break;
             default:
@@ -71,8 +70,6 @@ void CAMq::handleMessage(cMessage* msg) {
 
 void CAMq::sampleBernoulli(cMessage* msg, int ei) {
     if (m == 0) {
-        RECEIVED_CAMs++;
-
         double U = dist(e2);
         int delta = floor(log2(U) / log10(1 - samplingRate));
         m = delta + 1;
@@ -92,7 +89,13 @@ void CAMq::sampleBernoulli(cMessage* msg, int ei) {
 
 void CAMq::sampleReservoir(cMessage* msg, int ei) {
     if (ei < maxSampleSize) {
+        RECEIVED_CAMs++;
         reservoir[ei - 1] = msg;
+
+        DemoSafetyMessage* bsm = dynamic_cast<DemoSafetyMessage*>(msg);
+        int vid = bsm->getSenderId();
+        std::string rid = bsm->getDemoData();
+        m_updateVid2Rid(vid, rid, msg);
     }
     if (ei >= maxSampleSize && ei == m) {
         RECEIVED_CAMs++;
@@ -215,6 +218,19 @@ void CAMq::handleSelfMsg(cMessage* msg) {
                 h_rid.clear();
                 m_vid2rid.clear();
                 m_rid2node.clear();
+
+                switch (samplingTechnique) {
+                    case BERNOULLI_SAMPLING: {
+                        break;
+                    }
+                    case RESERVOIR_SAMPLING: {
+                        elementi = 0;
+                        break;
+                    }
+                    default: {
+                        break;
+                    }
+                }
             }
 
             g_sendTime += sendInterval;
