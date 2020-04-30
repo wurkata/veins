@@ -71,6 +71,8 @@ void CAMq::handleMessage(cMessage* msg) {
 
 void CAMq::sampleBernoulli(cMessage* msg, int ei) {
     if (m == 0) {
+        RECEIVED_CAMs++;
+
         double U = dist(e2);
         int delta = floor(log2(U) / log10(1 - samplingRate));
         m = delta + 1;
